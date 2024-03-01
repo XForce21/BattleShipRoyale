@@ -21,7 +21,7 @@ public class User implements Runnable {
 
     private Prompt prompt;
 
-    private PrintWriter out;
+    private PrintStream out;
     private BufferedReader in;
 
     public User(Socket userSocket) {
@@ -69,21 +69,20 @@ public class User implements Runnable {
     public void run() {
 
         try {
-            out = new PrintWriter(userSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
-            out.println("UserName: ");
-            userName = in.readLine();
-            Thread.currentThread().setName(userName);
-
-            prompt = new Prompt(userSocket.getInputStream(), (PrintStream) userSocket.getOutputStream());
-           while (!ServerEngine.step1) {
-                Thread.onSpinWait();
+            if(!userNameCheck) {
+                out = new PrintStream(userSocket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
+                out.println("UserName: ");
+                userName = in.readLine();
+                Thread.currentThread().setName(userName);
             }
-            for (Ships s : Ships.values()) {
-                choseShipPosition(s);
-                hasShips = true;
+            prompt = new Prompt(userSocket.getInputStream(), out);
+            if (ServerEngine.step1) {
+                for (Ships s : Ships.values()) {
+                    choseShipPosition(s);
+                    hasShips = true;
+                }
             }
-
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }

@@ -59,8 +59,10 @@ public class ServerEngine {
                     step1 = true;
 
                     //notifyAll();
-                    if (users.get(0).hasShips() && users.get(1).hasShips()) { // change if more than 2 players
-                        step2 = true;
+                    while(!step2) {
+                        if (users.get(0).hasShips() && users.get(1).hasShips()) { // change if more than 2 players
+                            step2 = true;
+                        }
                     }
                     if (step2) {
 
