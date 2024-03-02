@@ -23,7 +23,7 @@ public class ServerEngine {
     public static String winner;
 
     public static final String welcomingMessage =
-            "\u001b[31m██████╗  █████╗ ████████╗████████╗██╗     ███████╗███████╗██╗  ██╗██╗██████╗     ██████╗  ██████╗ ██╗   ██╗ █████╗ ██╗     ███████╗\u001b[0m\n" +
+            "\n\u001b[31m██████╗  █████╗ ████████╗████████╗██╗     ███████╗███████╗██╗  ██╗██╗██████╗     ██████╗  ██████╗ ██╗   ██╗ █████╗ ██╗     ███████╗\u001b[0m\n" +
             "\u001b[31m██╔══██╗██╔══██╗╚══██╔══╝╚══██╔══╝██║     ██╔════╝██╔════╝██║  ██║██║██╔══██╗    ██╔══██╗██╔═══██╗╚██╗ ██╔╝██╔══██╗██║     ██╔════╝\u001b[0m\n" +
             "\u001b[31m██████╔╝███████║   ██║      ██║   ██║     █████╗  ███████╗███████║██║██████╔╝    ██████╔╝██║   ██║ ╚████╔╝ ███████║██║     █████╗\u001b[0m\n" +
             "\u001b[31m██╔══██╗██╔══██║   ██║      ██║   ██║     ██╔══╝  ╚════██║██╔══██║██║██╔═══╝     ██╔══██╗██║   ██║  ╚██╔╝  ██╔══██║██║     ██╔══╝\u001b[0m\n" +
@@ -220,7 +220,7 @@ public class ServerEngine {
                     user.incrementHits();
                     break;
             }
-            broadcast(message, users.get(0));
+            broadcast(message + "\n", users.get(0));
             users.get(0).setMyTurn(true);
             return;
         }
@@ -239,7 +239,7 @@ public class ServerEngine {
                 user.incrementHits();
                 break;
         }
-        broadcast(message, users.get(1));
+        broadcast(message + "\n", users.get(1));
         users.get(1).setMyTurn(true);
     }
 
