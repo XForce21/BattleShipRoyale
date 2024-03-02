@@ -174,6 +174,18 @@ public class ServerEngine {
         String message = "";
         for (int i = 0; i < ROWS + 1; i++) {
             for (int j = 0; j < COLS + 1; j++) {
+                if(grid[i][j] == 'X'){
+                   message += "\u001b[31m" + grid[i][j] + "\u001b[0m ";
+                   continue;
+                }
+                if(grid[i][j] == 'M'){
+                    message += "\u001b[33m" + grid[i][j] + "\u001b[0m ";
+                    continue;
+                }
+                if(grid[i][j] == '~'){
+                    message += "\u001b[36m" + grid[i][j] + "\u001b[0m ";
+                    continue;
+                }
                 message += grid[i][j] + " ";
             }
             message += "\n";
