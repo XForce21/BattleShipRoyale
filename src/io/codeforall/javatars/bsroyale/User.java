@@ -78,7 +78,7 @@ public class User implements Runnable {
                     Thread.currentThread().setName(userName);
                     userNameCheck = true;
                 }
-                System.out.println("Step1: " + ServerEngine.step1);
+                //System.out.println("Step1: " + ServerEngine.step1);
                 if (!hasShips && ServerEngine.step1) {
                     System.out.println("User Handler stuck here");
                     ServerEngine.broadcast("\nTime to choose the position of your ships on the grid!\n", this);
