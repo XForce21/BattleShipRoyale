@@ -18,8 +18,17 @@ public class ServerEngine {
     public static final int ROWS = 10;
     public static final int COLS = 10;
 
-    public volatile static boolean step1, step2, step3, gameEnd;
+    public volatile static boolean step1, step2, step3, step4, gameEnd;
 
+    public static String winner;
+
+    public static final String welcomingMessage =
+            "██████╗  █████╗ ████████╗████████╗██╗     ███████╗███████╗██╗  ██╗██╗██████╗     ██████╗  ██████╗ ██╗   ██╗ █████╗ ██╗     ███████╗\n" +
+            "██╔══██╗██╔══██╗╚══██╔══╝╚══██╔══╝██║     ██╔════╝██╔════╝██║  ██║██║██╔══██╗    ██╔══██╗██╔═══██╗╚██╗ ██╔╝██╔══██╗██║     ██╔════╝\n" +
+            "██████╔╝███████║   ██║      ██║   ██║     █████╗  ███████╗███████║██║██████╔╝    ██████╔╝██║   ██║ ╚████╔╝ ███████║██║     █████╗\n" +
+            "██╔══██╗██╔══██║   ██║      ██║   ██║     ██╔══╝  ╚════██║██╔══██║██║██╔═══╝     ██╔══██╗██║   ██║  ╚██╔╝  ██╔══██║██║     ██╔══╝\n" +
+            "██████╔╝██║  ██║   ██║      ██║   ███████╗███████╗███████║██║  ██║██║██║         ██║  ██║╚██████╔╝   ██║   ██║  ██║███████╗███████╗\n" +
+            "╚═════╝ ╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝╚═╝         ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝";
 
     public static void main(String[] args) {
 
@@ -36,7 +45,7 @@ public class ServerEngine {
             serverSocket = new ServerSocket(portNumber);
             boolean allHaveNick = false;
             boolean allHaveShips = false;
-            while (serverSocket.isBound()) {
+            while (!serverSocket.isClosed()) {
                 if (!step1) {
                     while (users.size() < NUMBER_OF_PLAYERS) {
                         Socket userSocket = serverSocket.accept();
@@ -87,10 +96,24 @@ public class ServerEngine {
                         broadcast(printGrid(u.getEnemyGrid()), u);
                     }
                     step2 = true;
+                    users.get(0).setMyTurn(true);
                 }
 
                 if (!step3) {
+
                     //System.out.println("Arrived at step 3");
+                    if(checkWin()){
+                        gameEnd = true;
+                        step3 = true;
+                    }
+                }
+                if(!step4 && step3){
+                    broadcast("!!!!! " + winner + " WINS!!!!");
+                    for(User u: users){
+                        u.getUserSocket().close();
+                    }
+                    connectionPool.close();
+                    serverSocket.close();
                 }
             }
 
@@ -166,5 +189,56 @@ public class ServerEngine {
         return clone;
     }
 
+    public static void checkHit(int x, int y, User user){
+        char[][] grid = user.getEnemyGrid();
+        String message = null;
+        if(users.get(0) != user){
+            switch (users.get(0).getUserGrid()[y][x]){
+                case '~':
+                    grid[y][x] = 'M';
+                    user.setEnemyGrid(grid);
+                    broadcast("\n!!!Miss!!!\n", user);
+                    message = user.getUserName() + " Missed at X: " + (x-1) + " Y: " + (y-1);
+                    break;
+                case 'O':
+                    grid[y][x] = 'X';
+                    user.setEnemyGrid(grid);
+                    broadcast("\n!!!Hit!!!\n", user);
+                    message = user.getUserName() + " Hit at X: " + (x-1) + " Y: " + (y-1);
+                    user.incrementHits();
+                    break;
+            }
+            broadcast(message, users.get(0));
+            users.get(0).setMyTurn(true);
+            return;
+        }
+        switch (users.get(1).getUserGrid()[y][x]){
+            case '~':
+                grid[y][x] = 'M';
+                user.setEnemyGrid(grid);
+                broadcast("\n!!!Miss!!!\n", user);
+                message = user.getUserName() + " Missed at X: " + (x-1) + " Y: " + (y-1);
+                break;
+            case 'O':
+                grid[y][x] = 'X';
+                user.setEnemyGrid(grid);
+                broadcast("\n!!!Hit!!!\n", user);
+                message = user.getUserName() + " Hit at X: " + (x-1) + " Y: " + (y-1);
+                user.incrementHits();
+                break;
+        }
+        broadcast(message, users.get(1));
+        users.get(1).setMyTurn(true);
+    }
+
+    private static boolean checkWin(){
+        for(User u: users){
+            if(u.getHits() == 9){
+                winner = u.getUserName();
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

@@ -15,7 +15,7 @@ public class User implements Runnable {
 
     private boolean userNameCheck;
     private boolean hasShips;
-
+    private boolean myTurn;
     private char[][] userGrid = new char[ServerEngine.ROWS + 1][ServerEngine.COLS + 1];
     private char[][] enemyGrid = new char[ServerEngine.ROWS + 1][ServerEngine.COLS + 1];
 
@@ -24,8 +24,11 @@ public class User implements Runnable {
     private PrintStream out;
     private BufferedReader in;
 
+    private int hits;
+
     public User(Socket userSocket) {
         this.userSocket = userSocket;
+        hits = 0;
     }
 
     public Socket getUserSocket() {
@@ -77,6 +80,7 @@ public class User implements Runnable {
                     userName = in.readLine();
                     Thread.currentThread().setName(userName);
                     userNameCheck = true;
+                    ServerEngine.broadcast(ServerEngine.welcomingMessage, this);
                 }
                 //System.out.println("Step1: " + ServerEngine.step1);
                 if (!hasShips && ServerEngine.step1) {
@@ -87,6 +91,11 @@ public class User implements Runnable {
                         choseShipPosition(s);
                     }
                     hasShips = true;
+                }
+
+                if(ServerEngine.step2 && myTurn){
+                    hitAttempt();
+                    myTurn = false;
                 }
 
             }
@@ -178,6 +187,35 @@ public class User implements Runnable {
             }
         }
         return false;
+    }
+
+    private void hitAttempt(){
+        int x = 1;
+        int y = 1;
+        ServerEngine.broadcast(ServerEngine.printGrid(enemyGrid), this);
+        IntegerRangeInputScanner inputScanner = new IntegerRangeInputScanner(0, 9);
+        inputScanner.setMessage("\nYour Turn!\nX Target: ");
+        x += prompt.getUserInput(inputScanner);
+        inputScanner.setMessage("Y Target: ");
+        y += prompt.getUserInput(inputScanner);
+        if(enemyGrid[y][x] == 'X' || enemyGrid[y][x] == 'M'){
+            out.println("You have already tried to fire at that position. Choose again!");
+            hitAttempt();
+            return;
+        }
+        ServerEngine.checkHit(x, y, this);
+    }
+
+    public int getHits() {
+        return hits;
+    }
+
+    public void incrementHits(){
+        hits++;
+    }
+
+    public void setMyTurn(boolean myTurn) {
+        this.myTurn = myTurn;
     }
 
     private enum Ships {
