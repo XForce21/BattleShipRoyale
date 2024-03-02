@@ -69,19 +69,26 @@ public class User implements Runnable {
     public void run() {
 
         try {
-            if(!userNameCheck) {
-                out = new PrintStream(userSocket.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
-                out.println("UserName: ");
-                userName = in.readLine();
-                Thread.currentThread().setName(userName);
-            }
-            prompt = new Prompt(userSocket.getInputStream(), out);
-            if (ServerEngine.step1) {
-                for (Ships s : Ships.values()) {
-                    choseShipPosition(s);
+            while (!ServerEngine.gameEnd) {
+                if (!userNameCheck) {
+                    out = new PrintStream(userSocket.getOutputStream(), true);
+                    in = new BufferedReader(new InputStreamReader(userSocket.getInputStream()));
+                    out.println("UserName: ");
+                    userName = in.readLine();
+                    Thread.currentThread().setName(userName);
+                    userNameCheck = true;
+                }
+                System.out.println("Step1: " + ServerEngine.step1);
+                if (!hasShips && ServerEngine.step1) {
+                    System.out.println("User Handler stuck here");
+                    ServerEngine.broadcast("\nTime to choose the position of your ships on the grid!\n", this);
+                    prompt = new Prompt(userSocket.getInputStream(), out);
+                    for (Ships s : Ships.values()) {
+                        choseShipPosition(s);
+                    }
                     hasShips = true;
                 }
+
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -89,37 +96,58 @@ public class User implements Runnable {
     }
 
     private void choseShipPosition(Ships ship) {
-        int xPosition = 0;
-        int yPosition = 0;
+        char[][] tempUserGrid = ServerEngine.cloneGrid(userGrid);
+        int xPosition = 1;
+        int yPosition = 1;
         String[] options = {"Horizontal", "Vertical"};
         MenuInputScanner menuInputScanner = new MenuInputScanner(options);
         menuInputScanner.setMessage("Choose your ship orientation: ");
         int answer = prompt.getUserInput(menuInputScanner);
         if (answer == 1) {
             IntegerRangeInputScanner inputScanner = new IntegerRangeInputScanner(0, 10 - ship.size);
-            inputScanner.setMessage("Choose X initial position for your " + ship + " class ship with " + ship.size + " of length!");
-            xPosition = prompt.getUserInput(inputScanner);
+            inputScanner.setMessage("Choose X initial position for your " + ship + " class ship with " + ship.size + " of length: ");
+            xPosition += prompt.getUserInput(inputScanner);
             inputScanner = new IntegerRangeInputScanner(0, 9);
-            inputScanner.setMessage("Choose Y position for your " + ship + " class ship");
-            yPosition = prompt.getUserInput(inputScanner);
+            inputScanner.setMessage("Choose Y position for your " + ship + " class ship: ");
+            yPosition += prompt.getUserInput(inputScanner);
             if (checkOccupied(ship.size, xPosition, yPosition, true)) {
                 out.println("You chose an already occupied position. Please choose again");
                 choseShipPosition(ship);
             }
             addShip(ship.size, xPosition, yPosition, true);
+
+            ServerEngine.broadcast(ServerEngine.printGrid(userGrid), this);
+
+            String[] options2 = {"Yes", "No"};
+            MenuInputScanner menuInputScanner2 = new MenuInputScanner(options2);
+            menuInputScanner2.setMessage("This is how you placed this ship. Do you want to redo it?");
+            if (prompt.getUserInput(menuInputScanner2) == 1){
+                userGrid = ServerEngine.cloneGrid(tempUserGrid);
+                choseShipPosition(ship);
+            }
             return;
         }
-        IntegerRangeInputScanner inputScanner = new IntegerRangeInputScanner(0, 10 - ship.size);
-        inputScanner.setMessage("Choose Y initial position for your " + ship + " class ship with " + ship.size + " of length!");
-        yPosition = prompt.getUserInput(inputScanner);
-        inputScanner = new IntegerRangeInputScanner(0, 9);
-        inputScanner.setMessage("Choose X position for your " + ship + " class ship");
-        xPosition = prompt.getUserInput(inputScanner);
+        IntegerRangeInputScanner inputScanner = new IntegerRangeInputScanner(0, 9);
+        inputScanner.setMessage("Choose X position for your " + ship + " class ship: ");
+        xPosition += prompt.getUserInput(inputScanner);
+        inputScanner = new IntegerRangeInputScanner(0, 10 - ship.size);
+        inputScanner.setMessage("Choose Y initial position for your " + ship + " class ship with " + ship.size + " of length: ");
+        yPosition += prompt.getUserInput(inputScanner);
         if (checkOccupied(ship.size, xPosition, yPosition, false)) {
             out.println("You chose an already occupied position. Please choose again");
             choseShipPosition(ship);
         }
         addShip(ship.size, xPosition, yPosition, false);
+
+        ServerEngine.broadcast(ServerEngine.printGrid(userGrid), this);
+
+        String[] options2 = {"Yes", "No"};
+        MenuInputScanner menuInputScanner2 = new MenuInputScanner(options2);
+        menuInputScanner2.setMessage("This is how you placed this ship. Do you want to redo it?");
+        if (prompt.getUserInput(menuInputScanner2) == 1){
+            userGrid = ServerEngine.cloneGrid(tempUserGrid);
+            choseShipPosition(ship);
+        }
 
     }
 
