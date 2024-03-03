@@ -171,7 +171,7 @@ public class ServerEngine {
     }
 
     public static String printGrid(char[][] grid) {
-        String message = "";
+        String message = "\n";
         for (int i = 0; i < ROWS + 1; i++) {
             for (int j = 0; j < COLS + 1; j++) {
                 if(grid[i][j] == 'X'){

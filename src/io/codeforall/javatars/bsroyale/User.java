@@ -84,7 +84,6 @@ public class User implements Runnable {
                 }
                 //System.out.println("Step1: " + ServerEngine.step1);
                 if (!hasShips && ServerEngine.step1) {
-                    System.out.println("User Handler stuck here");
                     ServerEngine.broadcast("\nTime to choose the position of your ships on the grid!\n", this);
                     prompt = new Prompt(userSocket.getInputStream(), out);
                     for (Ships s : Ships.values()) {
